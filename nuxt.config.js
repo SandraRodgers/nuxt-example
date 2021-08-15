@@ -1,9 +1,5 @@
-const authors = ['Jane Doe', 'Inigo Montoya']
+const authors = ['Jane%20Do', 'Inigo%20Montoya']
 const authorFeeds = []
-
-setTimeout(()=>{
-  console.log([mainFeed, ...authorFeeds])
-}, 1000)
 
 
 const mainFeed = {
@@ -31,15 +27,18 @@ const mainFeed = {
   type: 'rss2',
 }
 
-authors.forEach(author => {
+authors.forEach(auth => {
+  const regex = /%20/i;
+  const authorQueryFormat = auth.replace(regex, ' ')
+
   authorFeeds.push({
-    path: `/author/${author}/feed.xml`,
+    path: `/author/${auth}/feed.xml`,
     async create(feed) {
       const { $content } = require('@nuxt/content');
-      const posts = await $content('blog').where({author: author}).fetch();
+      const posts = await $content('blog').where({author: authorQueryFormat}).fetch();
       feed.options = {
         title: 'Deepgram blog',
-        link: `https://localhost:3000/${author}feed.xml`,
+        link: `https://localhost:3000/${auth}feed.xml`,
         description: "All things Deepgram",
         }
 
@@ -47,7 +46,11 @@ authors.forEach(author => {
           feed.addItem({
             title: post.title,
             id: post.slug,
-            author: post.author,
+            author: [
+              {
+                name: post.author,
+                email: 'Author:',
+              },],
             link: `http://localhost:3000/blog/${post.slug}`,
             date: new Date(post.date),
           })
